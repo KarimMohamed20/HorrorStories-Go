@@ -11,26 +11,26 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
-type User struct {
+type Story struct {
 	gorm.Model
 	Name  string
 	Story string
 	Shortcut string
 }
 
-func allUsers(w http.ResponseWriter, r *http.Request) {
+func allStories(w http.ResponseWriter, r *http.Request) {
 	db, err := gorm.Open("sqlite3", "test.db")
 	if err != nil {
 		panic("failed to connect database")
 	}
 	defer db.Close()
 
-	var users []User
-	db.Find(&users)
-	json.NewEncoder(w).Encode(users)
+	var stories []Story
+	db.Find(&stories)
+	json.NewEncoder(w).Encode(stories)
 }
 
-func newUser(w http.ResponseWriter, r *http.Request) {
+func newStories(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("New User Endpoint Hit")
 
 	db, err := gorm.Open("sqlite3", "test.db")
@@ -47,11 +47,11 @@ func newUser(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(name)
 	fmt.Println(story)
 	fmt.Println(shortcut)
-	db.Create(&User{Name: name, Story: story,Shortcut:shortcut})
+	db.Create(&Story{Name: name, Story: story,Shortcut:shortcut})
 	fmt.Fprintf(w, "New User Successfully Created")
 }
 
-func deleteUser(w http.ResponseWriter, r *http.Request) {
+func deleteStories(w http.ResponseWriter, r *http.Request) {
 	db, err := gorm.Open("sqlite3", "test.db")
 	if err != nil {
 		panic("failed to connect database")
@@ -61,14 +61,14 @@ func deleteUser(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	name := vars["name"]
 
-	var user User
-	db.Where("name = ?", name).Find(&user)
-	db.Delete(&user)
+	var stories Story
+	db.Where("name = ?", name).Find(&stories)
+	db.Delete(&stories)
 
 	fmt.Fprintf(w, "Successfully Deleted User")
 }
 
-func updateUser(w http.ResponseWriter, r *http.Request) {
+func updateStories(w http.ResponseWriter, r *http.Request) {
 	db, err := gorm.Open("sqlite3", "test.db")
 	if err != nil {
 		panic("failed to connect database")
@@ -79,21 +79,21 @@ func updateUser(w http.ResponseWriter, r *http.Request) {
 	name := vars["name"]
 	story := vars["story"]
 
-	var user User
-	db.Where("name = ?", name).Find(&user)
+	var stories Story
+	db.Where("name = ?", name).Find(&stories)
 
-	user.Story = story
+	stories.Story = story
 
-	db.Save(&user)
+	db.Save(&stories)
 	fmt.Fprintf(w, "Successfully Updated User")
 }
 
 func handleRequests() {
 	myRouter := mux.NewRouter().StrictSlash(true)
-	myRouter.HandleFunc("/stories", allUsers).Methods("GET")
-	myRouter.HandleFunc("/story/{name}", deleteUser).Methods("DELETE")
-	myRouter.HandleFunc("/story/{name}/{story}/{shortcut}", updateUser).Methods("PUT")
-	myRouter.HandleFunc("/story/{name}/{story}/{shortcut}", newUser).Methods("POST")
+	myRouter.HandleFunc("/stories", allStories).Methods("GET")
+	myRouter.HandleFunc("/story/{name}", deleteStories).Methods("DELETE")
+	myRouter.HandleFunc("/story/{name}/{story}/{shortcut}", updateStories).Methods("PUT")
+	myRouter.HandleFunc("/story/{name}/{story}/{shortcut}", newStories).Methods("POST")
 	log.Fatal(http.ListenAndServe(":8010", myRouter))
 }
 
@@ -106,7 +106,7 @@ func initialMigration() {
 	defer db.Close()
 
 	// Migrate the schema
-	db.AutoMigrate(&User{})
+	db.AutoMigrate(&Story{})
 }
 
 func main() {
